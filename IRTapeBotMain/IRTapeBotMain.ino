@@ -24,30 +24,6 @@ void setup() {
 }
 
 void loop() {
-<<<<<<< HEAD
-  // put your main code here, to run repeatedly:
-  //Check with both Sencer if on line
-
-  // if both sencers is on line{
-      // Move Foward
-      // Check if there is a stop sign
-      // if there is a stop sign{
-        // stop for certan time
-        // Move Forward
-  
-  // if Left sencer is high{
-    // Turn left
-    // Move foward
-
-  // if Right Sencer is high{
-    // Turn Right
-    // Move forward
-
-  // if both sencers are high{
-    // Edit
-<<<<<<< Updated upstream
-=======
-=======
   //Take input from front IR sensors
   int LEFTreading = digitalRead(LEFTSENSEPIN);
   int RIGHTreading = digitalRead(RIGHTSENSEPIN);
@@ -58,6 +34,4 @@ void loop() {
   Serial.println(RIGHTreading);
   Serial.println(STOPreading);
   delay(300);
->>>>>>> 8770ba63c6f0aa58fa0d73fe3d3e92fb76042270
->>>>>>> Stashed changes
 }
