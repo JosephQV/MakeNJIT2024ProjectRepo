@@ -3,8 +3,12 @@ const int RIGHTSENSEPIN = 41;
 const int STOPSENSEPIN = 37;
 
 const int STOPMOTORPIN = 33;
-const int STEERINGLEFTPIN = 2;
-const int STEERINGRIGHTPIN = 3;
+const int LEFT1PIN = 2;
+const int LEFT2PIN = 3;
+const int RIGHT1PIN = 4;
+const int RIGHT2PIN = 5;
+
+bool DIRECTION = 0;
 
 void setup() {
   //Set input pins for IR sensors
@@ -15,9 +19,11 @@ void setup() {
   pinMode(STOPSENSEPIN, INPUT);
   //set output pin for start/stopping back wheel motors
   pinMode(STOPMOTORPIN, OUTPUT);
-  //set digital output pins for controlling left and right steering
-  pinMode(STEERINGLEFTPIN, OUTPUT);
-  pinMode(STEERINGRIGHTPIN, OUTPUT);
+  //set digital output pins for controlling the 2 left and 2 right wheels
+  pinMode(LEFT1PIN, OUTPUT);
+  pinMode(LEFT2PIN, OUTPUT);
+  pinMode(RIGHT1PIN, OUTPUT);
+  pinMode(RIGHT2PIN, OUTPUT);
   
   //Serial monitor for printing for testing
   Serial.begin(9600);
@@ -30,8 +36,50 @@ void loop() {
   //take input from side IR sensor
   int STOPreading = digitalRead(STOPSENSEPIN);
   //TESTING - print inputs
-  Serial.println(LEFTreading);
-  Serial.println(RIGHTreading);
+  Serial.print("LEFT: ");
+  Serial.print(LEFTreading);
+  Serial.print("   RIGHT: ");
+  Serial.print(RIGHTreading);
+  Serial.print("   STOP: ");
   Serial.println(STOPreading);
+  //check path using inputs from sensors
+  // if(STOPSENSEPIN){
+  //   delay(3000);
+  // } else {
+      checkPath(LEFTreading, RIGHTreading);
+  // }
   delay(300);
+}
+
+void checkPath(int LEFT, int RIGHT){
+  if(LEFT == 1 && RIGHT == 1){
+    MOVELEFT(DIRECTION);
+    MOVERIGHT(DIRECTION);
+    Serial.println("MOVE FORWARD");
+  }
+  if(LEFT == 1 && RIGHT == 0){
+    MOVELEFT(!DIRECTION);
+    MOVERIGHT(DIRECTION);
+    Serial.println("MOVE LEFT");
+  }
+  if(LEFT == 0 && RIGHT == 1){
+    MOVELEFT(DIRECTION);
+    MOVERIGHT(!DIRECTION);
+    Serial.println("MOVE RIGHT");
+  }
+  if(LEFT == 0 && RIGHT == 0){
+    DIRECTION = !DIRECTION;
+    MOVELEFT(DIRECTION);
+    MOVERIGHT(DIRECTION);
+    Serial.println("MOVE BACK");
+  }
+}
+
+void MOVELEFT(bool direction){
+  digitalWrite(LEFT1PIN, direction);
+  digitalWrite(LEFT2PIN, direction);
+}
+void MOVERIGHT(bool direction){
+  digitalWrite(RIGHT1PIN, direction);
+  digitalWrite(RIGHT2PIN, direction);
 }
