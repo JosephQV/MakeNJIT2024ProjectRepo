@@ -21,6 +21,15 @@ void setup() {
   
   //Serial monitor for printing for testing
   Serial.begin(9600);
+
+  void Left(const level){
+    digitalwrite(STEERINGLEFTPIN, level)
+  }
+
+  void RIGHT(const level){
+    digitalwrite(STEERINGRIGHTPIN, level)
+  }
+
 }
 
 void loop() {
@@ -34,8 +43,25 @@ void loop() {
   Serial.println(RIGHTreading);
   Serial.println(STOPreading);
   delay(300);
-}
-
-void Left1(){
-
+  //If statement aka Conditionals
+  // Going Straight when both are 0
+  if ((digitalRead(LEFTSENSEPIN)=LOW) && (digitalRead(RIGHTSENSEPIN)=LOW)){
+    Left(HIGH);
+    Right(HIGH);
+  }
+  // Turning Left when L is 0 and R is 1
+  if ((digitalRead(LEFTSENSEPIN)=LOW) && (digitalRead(RIGHTSENSEPIN)=HIGH)){
+    Left(LOW);
+    Right(HIGH);
+  }
+  // Turning Right when L is 1 and R is 0
+  if ((digitalRead(LEFTSENSEPIN)=HIGH) && (digitalRead(RIGHTSENSEPIN)=LOW)){
+    Left(HIGH);
+    Right(LOW);
+  }
+  // Stopping when both are 1
+  if ((digitalRead(LEFTSENSEPIN)=HIGH) && (digitalRead(RIGHTSENSEPIN)=HIGH)){
+    Left(LOW);
+    Right(LOW);
+  }
 }
