@@ -35,3 +35,7 @@ void loop() {
   Serial.println(STOPreading);
   delay(300);
 }
+
+void Left(){
+  
+}
