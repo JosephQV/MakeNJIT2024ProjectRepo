@@ -36,6 +36,6 @@ void loop() {
   delay(300);
 }
 
-void Left(){
-  
+void Left1(){
+
 }
