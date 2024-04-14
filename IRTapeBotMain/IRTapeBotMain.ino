@@ -1,13 +1,20 @@
-const int LEFTSENSEPIN = 45;
-const int RIGHTSENSEPIN = 41;
-const int STOPSENSEPIN = 37;
+//pin number setup
+const int LEFTSENSEPIN = 4;
+const int RIGHTSENSEPIN = 5;
+const int STOPSENSEPIN = 2;
+//2 left wheels, 2 right wheels
+const int LEFTDIRECTION = 12;
+const int LEFTPWM = 3;
+const int LEFTBRAKE = 9; 
+const int RIGHTDIRECTION = 13;
+const int RIGHTPWM = 11;
+const int RIGHTBRAKE = 8;
 
-const int STOPMOTORPIN = 33;
-const int LEFT1PIN = 2;
-const int LEFT2PIN = 3;
-const int RIGHT1PIN = 4;
-const int RIGHT2PIN = 5;
+//reverse sensor pins
+const int LEFTSENSEPIN_R = 6;
+const int RIGHTSENSEPIN_R = 7;
 
+const int SPEED = 100;
 bool DIRECTION = 0;
 
 void setup() {
@@ -15,24 +22,35 @@ void setup() {
   //2 IR Sensors at front for steering detection
   pinMode(LEFTSENSEPIN, INPUT);
   pinMode(RIGHTSENSEPIN, INPUT);
+  //2 IR sensors at back
+  pinMode(LEFTSENSEPIN_R, INPUT);
+  pinMode(RIGHTSENSEPIN_R, INPUT);
   //1 IR Sensor at side for stop detection
   pinMode(STOPSENSEPIN, INPUT);
-  //set output pin for start/stopping back wheel motors
-  pinMode(STOPMOTORPIN, OUTPUT);
   //set digital output pins for controlling the 2 left and 2 right wheels
-  pinMode(LEFT1PIN, OUTPUT);
-  pinMode(LEFT2PIN, OUTPUT);
-  pinMode(RIGHT1PIN, OUTPUT);
-  pinMode(RIGHT2PIN, OUTPUT);
+  pinMode(LEFTDIRECTION, OUTPUT);
+  pinMode(LEFTPWM, OUTPUT);
+  pinMode(LEFTBRAKE, OUTPUT);
+  pinMode(RIGHTDIRECTION, OUTPUT);
+  pinMode(RIGHTPWM, OUTPUT);
+  pinMode(RIGHTBRAKE, OUTPUT);
   
   //Serial monitor for printing for testing
   Serial.begin(9600);
 }
 
 void loop() {
-  //Take input from front IR sensors
-  int LEFTreading = digitalRead(LEFTSENSEPIN);
-  int RIGHTreading = digitalRead(RIGHTSENSEPIN);
+  //Take input from IR sensors based on current direction
+  int LEFTreading;
+  int RIGHTreading;
+
+  if(DIRECTION == 0){
+    LEFTreading = digitalRead(LEFTSENSEPIN);
+    RIGHTreading = digitalRead(RIGHTSENSEPIN);
+  } else {
+    LEFTreading = digitalRead(LEFTSENSEPIN_R);
+    RIGHTreading = digitalRead(RIGHTSENSEPIN_R);
+  }
   //take input from side IR sensor
   int STOPreading = digitalRead(STOPSENSEPIN);
   //TESTING - print inputs
@@ -43,12 +61,13 @@ void loop() {
   Serial.print("   STOP: ");
   Serial.println(STOPreading);
   //check path using inputs from sensors
-  // if(STOPSENSEPIN){
-  //   delay(3000);
-  // } else {
-      checkPath(LEFTreading, RIGHTreading);
-  // }
-  delay(300);
+  if(STOPSENSEPIN == 1){
+    delay(3000);
+  } else {
+    checkPath(LEFTreading, RIGHTreading);
+  }
+  //checkPath(LEFTreading, RIGHTreading);
+  delay(2000);
 }
 
 void checkPath(int LEFT, int RIGHT){
@@ -76,10 +95,30 @@ void checkPath(int LEFT, int RIGHT){
 }
 
 void MOVELEFT(bool direction){
-  digitalWrite(LEFT1PIN, direction);
-  digitalWrite(LEFT2PIN, direction);
+  //Left side move in opposite of current direction
+  //Right side move in current direction
+  digitalWrite(LEFTDIRECTION, !direction);
+  digitalWrite(RIGHTDIRECTION, direction);
+  //no brakes
+  digitalWrite(LEFTBRAKE, LOW);
+  digitalWrite(RIGHTBRAKE, LOW);  
+  //work duty (speed)
+  analogWrite(LEFTPWM, SPEED);
+  analogWrite(RIGHTPWM, SPEED);
+  //motor time
+  delay(300);
 }
 void MOVERIGHT(bool direction){
-  digitalWrite(RIGHT1PIN, direction);
-  digitalWrite(RIGHT2PIN, direction);
+  //Left side move in opposite of current direction
+  //Right side move in current direction
+  digitalWrite(LEFTDIRECTION, direction);
+  digitalWrite(RIGHTDIRECTION, !direction);
+  //no brakes
+  digitalWrite(LEFTBRAKE, LOW);
+  digitalWrite(RIGHTBRAKE, LOW);  
+  //work duty (speed)
+  analogWrite(LEFTPWM, SPEED);
+  analogWrite(RIGHTPWM, SPEED);
+  //motor time
+  delay(300);
 }
