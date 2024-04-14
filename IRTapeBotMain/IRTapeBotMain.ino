@@ -1,24 +1,31 @@
 //pin number setup
-const int LEFTSENSEPIN = 4;
-const int RIGHTSENSEPIN = 5;
+//IR sensors
+const int LEFTSENSEPIN = 5;
+const int RIGHTSENSEPIN = 4;
 const int STOPSENSEPIN = 2;
-//2 left wheels, 2 right wheels
-const int LEFTDIRECTION = 12;
-const int LEFTPWM = 3;
-const int LEFTBRAKE = 9; 
-const int RIGHTDIRECTION = 13;
-const int RIGHTPWM = 11;
-const int RIGHTBRAKE = 8;
-
-//reverse sensor pins
+//reverse IR sensor pins (on "back")
 const int LEFTSENSEPIN_R = 6;
 const int RIGHTSENSEPIN_R = 7;
 
-const int SPEED = 100;
+//left wheels, right wheels - motor shield control
+//channel A
+const int LEFTDIRECTION = 12;
+const int LEFTPWM = 3;
+const int LEFTBRAKE = 9; 
+//channel B
+const int RIGHTDIRECTION = 13;
+const int RIGHTPWM = 11;
+const int RIGHTBRAKE = 8;
+//motor speed
+const int SPEED = 40;
+//direction state value for determining sensors to use
 bool DIRECTION = 0;
 
+//setup for on/off button functionality
 const int OFFpin = 10;
-bool OFFbool = false;
+int oldButtonState = 0;
+int buttonState = 0;
+int state = 1; //1 for ON movement, 0 for OFF no movement
 
 void setup() {
   //Set input pins for IR sensors
@@ -30,7 +37,7 @@ void setup() {
   pinMode(RIGHTSENSEPIN_R, INPUT);
   //1 IR Sensor at side for stop detection
   pinMode(STOPSENSEPIN, INPUT);
-  //set digital output pins for controlling the 2 left and 2 right wheels
+  //set digital output pins for controlling the motor shields channels A and B
   pinMode(LEFTDIRECTION, OUTPUT);
   pinMode(LEFTPWM, OUTPUT);
   pinMode(LEFTBRAKE, OUTPUT);
@@ -38,18 +45,30 @@ void setup() {
   pinMode(RIGHTPWM, OUTPUT);
   pinMode(RIGHTBRAKE, OUTPUT);
   
-  pinMode(OFFpin, INPUT);
+  pinMode(OFFpin, INPUT_PULLUP);
   //Serial monitor for printing for testing
   Serial.begin(9600);
 }
 
 void loop() {
-  if(digitalRead(OFFpin) == HIGH){
-    OFFbool = true;
+  //get state of button: pressed = buttonState HIGH
+  buttonState = !digitalRead(OFFpin);
+
+  if(buttonState && !oldButtonState) // same as if(button == high && oldbutton == low)
+  {
+    //button was pressed
+    oldButtonState = 1;
+    state = !state;
+    Serial.println("BUTTON PRESSED");
+    delay(100);
   }
-  if(OFFbool){
-    delay(10000);
-  } else {
+  else if(!buttonState && oldButtonState)// same as if(button == low && oldbutton == high)
+  {
+    //button was released
+    oldButtonState = 0;
+    Serial.println("BUTTON RELEASED");
+  }
+  if(state){
     //Take input from IR sensors based on current direction
     int LEFTreading;
     int RIGHTreading;
@@ -72,12 +91,23 @@ void loop() {
     Serial.println(STOPreading);
     //check path using inputs from sensors
     if(STOPSENSEPIN == 1){
-      delay(3000);
+      Serial.println("STOPPED");
+      STOPMOVE(3000);
+      
     } else {
       checkPath(LEFTreading, RIGHTreading);
     }
     //checkPath(LEFTreading, RIGHTreading);
-    delay(2000);
+    delay(300);
+  } else {
+    //do nothing if state is 0
+    STOPMOVE(300);
+    // Serial.print("BUTTON STATE   ");
+    // Serial.println(buttonState);
+    // Serial.print("OLD BUTTON STATE   ");
+    // Serial.println(oldButtonState);
+    Serial.print("STATE   ");
+    Serial.println(state);
   }
 }
 
@@ -86,22 +116,27 @@ void checkPath(int LEFT, int RIGHT){
     MOVELEFT(DIRECTION);
     MOVERIGHT(DIRECTION);
     Serial.println("MOVE FORWARD");
+    delay(30);
   }
   if(LEFT == 1 && RIGHT == 0){
     MOVELEFT(!DIRECTION);
     MOVERIGHT(DIRECTION);
     Serial.println("MOVE LEFT");
+    delay(30);
   }
   if(LEFT == 0 && RIGHT == 1){
     MOVELEFT(DIRECTION);
     MOVERIGHT(!DIRECTION);
     Serial.println("MOVE RIGHT");
+    delay(30);
   }
   if(LEFT == 0 && RIGHT == 0){
+    delay(1500);
     DIRECTION = !DIRECTION;
     MOVELEFT(DIRECTION);
     MOVERIGHT(DIRECTION);
     Serial.println("MOVE BACK");
+    delay(30);
   }
 }
 
@@ -110,14 +145,14 @@ void MOVELEFT(bool direction){
   //Right side move in current direction
   digitalWrite(LEFTDIRECTION, !direction);
   digitalWrite(RIGHTDIRECTION, direction);
-  //no brakes
-  digitalWrite(LEFTBRAKE, LOW);
+  //left brakes
+  digitalWrite(LEFTBRAKE, HIGH);
   digitalWrite(RIGHTBRAKE, LOW);  
   //work duty (speed)
-  analogWrite(LEFTPWM, SPEED);
+  analogWrite(LEFTPWM, 0);
   analogWrite(RIGHTPWM, SPEED);
   //motor time
-  delay(300);
+  delay(30);
 }
 
 void MOVERIGHT(bool direction){
@@ -125,12 +160,25 @@ void MOVERIGHT(bool direction){
   //Right side move in current direction
   digitalWrite(LEFTDIRECTION, direction);
   digitalWrite(RIGHTDIRECTION, !direction);
-  //no brakes
+  //right brakes
   digitalWrite(LEFTBRAKE, LOW);
-  digitalWrite(RIGHTBRAKE, LOW);  
+  digitalWrite(RIGHTBRAKE, HIGH);  
   //work duty (speed)
   analogWrite(LEFTPWM, SPEED);
-  analogWrite(RIGHTPWM, SPEED);
+  analogWrite(RIGHTPWM, 0);
   //motor time
-  delay(300);
+  delay(30);
+}
+
+void STOPMOVE(int time){
+  digitalWrite(LEFTDIRECTION, 0);
+  digitalWrite(RIGHTDIRECTION, 0);
+  //both brakes
+  digitalWrite(LEFTBRAKE, HIGH);
+  digitalWrite(RIGHTBRAKE, HIGH);  
+  //work duty (speed)
+  analogWrite(LEFTPWM, 0);
+  analogWrite(RIGHTPWM, 0);
+  //motor time
+  delay(time);
 }
