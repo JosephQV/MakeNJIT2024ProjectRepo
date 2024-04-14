@@ -17,6 +17,9 @@ const int RIGHTSENSEPIN_R = 7;
 const int SPEED = 100;
 bool DIRECTION = 0;
 
+const int OFFpin = 10;
+bool OFFbool = false;
+
 void setup() {
   //Set input pins for IR sensors
   //2 IR Sensors at front for steering detection
@@ -35,39 +38,47 @@ void setup() {
   pinMode(RIGHTPWM, OUTPUT);
   pinMode(RIGHTBRAKE, OUTPUT);
   
+  pinMode(OFFpin, INPUT);
   //Serial monitor for printing for testing
   Serial.begin(9600);
 }
 
 void loop() {
-  //Take input from IR sensors based on current direction
-  int LEFTreading;
-  int RIGHTreading;
+  if(digitalRead(OFFpin) == HIGH){
+    OFFbool = true;
+  }
+  if(OFFbool){
+    delay(10000);
+  } else {
+    //Take input from IR sensors based on current direction
+    int LEFTreading;
+    int RIGHTreading;
 
-  if(DIRECTION == 0){
-    LEFTreading = digitalRead(LEFTSENSEPIN);
-    RIGHTreading = digitalRead(RIGHTSENSEPIN);
-  } else {
-    LEFTreading = digitalRead(LEFTSENSEPIN_R);
-    RIGHTreading = digitalRead(RIGHTSENSEPIN_R);
+    if(DIRECTION == 0){
+      LEFTreading = digitalRead(LEFTSENSEPIN);
+      RIGHTreading = digitalRead(RIGHTSENSEPIN);
+    } else {
+      LEFTreading = digitalRead(LEFTSENSEPIN_R);
+      RIGHTreading = digitalRead(RIGHTSENSEPIN_R);
+    }
+    //take input from side IR sensor
+    int STOPreading = digitalRead(STOPSENSEPIN);
+    //TESTING - print inputs
+    Serial.print("LEFT: ");
+    Serial.print(LEFTreading);
+    Serial.print("   RIGHT: ");
+    Serial.print(RIGHTreading);
+    Serial.print("   STOP: ");
+    Serial.println(STOPreading);
+    //check path using inputs from sensors
+    if(STOPSENSEPIN == 1){
+      delay(3000);
+    } else {
+      checkPath(LEFTreading, RIGHTreading);
+    }
+    //checkPath(LEFTreading, RIGHTreading);
+    delay(2000);
   }
-  //take input from side IR sensor
-  int STOPreading = digitalRead(STOPSENSEPIN);
-  //TESTING - print inputs
-  Serial.print("LEFT: ");
-  Serial.print(LEFTreading);
-  Serial.print("   RIGHT: ");
-  Serial.print(RIGHTreading);
-  Serial.print("   STOP: ");
-  Serial.println(STOPreading);
-  //check path using inputs from sensors
-  if(STOPSENSEPIN == 1){
-    delay(3000);
-  } else {
-    checkPath(LEFTreading, RIGHTreading);
-  }
-  //checkPath(LEFTreading, RIGHTreading);
-  delay(2000);
 }
 
 void checkPath(int LEFT, int RIGHT){
@@ -108,6 +119,7 @@ void MOVELEFT(bool direction){
   //motor time
   delay(300);
 }
+
 void MOVERIGHT(bool direction){
   //Left side move in opposite of current direction
   //Right side move in current direction
